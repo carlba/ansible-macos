@@ -1,9 +1,7 @@
 - name: My first play
   hosts: localhost
   tasks:
-   - name: Ping my hosts
-     ansible.builtin.ping:
-
-   - name: Print message
-     ansible.builtin.debug:
-      msg: Hello world
+    - community.general.homebrew_cask:
+        name: obsidian
+        state: present
+        path: /opt/homebrew/bin/brew
