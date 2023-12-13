@@ -1,7 +1,21 @@
 - name: My first play
   hosts: localhost
   tasks:
-    - community.general.homebrew_cask:
-        name: obsidian
+    - name: Ensure Mac App Store apps are installed
+      community.general.mas:
+        id:
+          - 545519333 # Prime Video
+          - 1569813296 # 1Password for Safari
+          - 1432731683 # Adblock Plus
+          - 6445813049 # Spark Desktop
+          - 905953485  # NordVPN
+          - 1568262835 # Super Agent
+          - 585829637 # Todoist
+    - name: Ensure Homebrew apps are present
+      community.general.homebrew_cask:
+        name:
+          - android-platform-tools
+          - discord
+          - obsidian
         state: present
         path: /opt/homebrew/bin/brew
