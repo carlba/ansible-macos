@@ -19,5 +19,18 @@
           - obsidian
           - 1password-cli
           - hammerspoon
+          - nvidia-geforce-now
         state: present
         path: /opt/homebrew/bin/brew
+
+    - name: Ensure karabiner.json is present
+      ansible.builtin.copy:
+        src: karabiner.json
+        dest: ~/.config/karabiner/karabiner.json
+        mode: "0644"
+
+    - name: Ensure script to enable sidecar is present
+      ansible.builtin.template:
+        src: enable_sidecar.sh.j2
+        dest: /usr/local/bin/enable_sidecar.sh
+        mode: "0755"

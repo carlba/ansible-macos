@@ -1,0 +1,160 @@
+#!/usr/bin/env osascript -l JavaScript
+
+/**
+ * -----------------------------------------------------------------------------
+ * Activate Sidecar/Screen Mirroring from Control Center
+ * -----------------------------------------------------------------------------
+ *
+ * Created on February 17, 2023 by Stephan Casas
+ * Updated on May 18, 2023 by Stephan Casas
+ *
+ * Options:
+ *   - TARGET_DEVICE_NAME
+ *     - The name of the sidecar/screen mirroring device to toggle.
+ *     - This should be exactly as it's written in screen mirroring menu.
+ *     - Include any whitespace characters as given in the menu entry.
+ *
+ *
+ * Notes:
+ *   This script was tested on macOS 13 Ventura and may break with future OS
+ *   updates.
+ */
+
+const TARGET_DEVICE_NAME = 'CarlPad';
+
+const $attr = Ref();
+const $windows = Ref();
+const $children = Ref();
+
+function run(_) {
+  // Get the current Control Center PID.
+  const pid = $.NSRunningApplication.runningApplicationsWithBundleIdentifier(
+    'com.apple.controlcenter',
+  ).firstObject.processIdentifier;
+
+  // Get the Control Center application.
+  const app = $.AXUIElementCreateApplication(pid);
+
+  // Get the Control Center menubar extra children.
+  $.AXUIElementCopyAttributeValue(app, 'AXChildren', $children);
+  $.AXUIElementCopyAttributeValue($children[0].js[0], 'AXChildren', $children);
+
+  // Locate the Control Center menubar extra (also has Clock, Users, etc.).
+  const ccExtra = $children[0].js.find((child) => {
+    $.AXUIElementCopyAttributeValue(child, 'AXIdentifier', $attr);
+    return $attr[0].js == 'com.apple.menuextra.controlcenter';
+  });
+
+  // Open Control Center window and await draw.
+  $.AXUIElementPerformAction(ccExtra, 'AXPress');
+  if (
+    !(() => {
+      const timeout = new Date().getTime() + 2000;
+      while (true) {
+        $.AXUIElementCopyAttributeValue(app, 'AXWindows', $windows);
+        if (
+          typeof $windows[0] == 'function' &&
+          ($windows[0].js.length ?? 0) > 0
+        ) {
+          return true;
+        }
+        if (new Date().getTime() > timeout) {
+          return false;
+        }
+        delay(0.1);
+      }
+    })()
+  ) {
+    return;
+  }
+
+  // Get Control Center window children.
+  $.AXUIElementCopyAttributeValue($windows[0].js[0], 'AXChildren', $children);
+
+  // Locate the Control Center modules group.
+  const modulesGroup = $children[0].js.find((child) => {
+    $.AXUIElementCopyAttributeValue(child, 'AXRole', $attr);
+    return $attr[0].js == 'AXGroup';
+  });
+
+  // Get the individual modules within the modules group.
+  $.AXUIElementCopyAttributeValue(modulesGroup, 'AXChildren', $children);
+
+  // Locate the screen-mirroring module.
+  const screenMirroring = $children[0].js.find((child) => {
+    $.AXUIElementCopyAttributeValue(child, 'AXIdentifier', $attr);
+    return $attr[0].js == 'controlcenter-screen-mirroring';
+  });
+
+  // Activate the screen mirroring module and await draw.
+  $.AXUIElementPerformAction(
+    screenMirroring,
+    // Wtf is this action name, Apple??
+    'Name:show details\nTarget:0x0\nSelector:(null)',
+  );
+  if (
+    !(() => {
+      const timeout = new Date().getTime() + 2000;
+      while (true) {
+        $.AXUIElementCopyAttributeValue(modulesGroup, 'AXChildren', $children);
+        if (
+          typeof $children[0] == 'function' &&
+          ($children[0].js.length ?? 0) > 0
+        ) {
+          return true;
+        }
+        if (new Date().getTime() > timeout) {
+          return false;
+        }
+        delay(0.1);
+      }
+    })()
+  ) {
+    return;
+  }
+
+  // Get the scroll area containing the device mirroring options.
+  const mirroringOptions = $children[0].js.find((child) => {
+    $.AXUIElementCopyAttributeValue(child, 'AXRole', $attr);
+    return $attr[0].js == 'AXScrollArea';
+  });
+
+  // Get all mirroring options.
+  $.AXUIElementCopyAttributeValue(mirroringOptions, 'AXChildren', $children);
+
+  // Locate the toggle element for the target mirroring device.
+  const toggle = $children[0].js
+    .filter((child) => {
+      $.AXUIElementCopyAttributeValue(child, 'AXRole', $attr);
+      return $attr[0].js == `AXCheckBox`;
+    })
+    .find((child) => {
+      $.AXUIElementCopyAttributeValue(child, 'AXIdentifier', $attr);
+      return $attr[0].js == `screen-mirroring-device-${TARGET_DEVICE_NAME}`;
+    });
+
+  if (!toggle) {
+    console.log(
+      'Error: Could not get toggle for target screen-mirroring device.',
+    );
+    return 1;
+  }
+
+  // Press the toggle for the target device.
+  $.AXUIElementPerformAction(toggle, 'AXPress');
+
+  // Send ⎋ to dismiss Control Center.
+  $.CGEventPost($.kCGHIDEventTap, $.CGEventCreateKeyboardEvent(null, 53, true));
+  $.CGEventPost($.kCGHIDEventTap, $.CGEventCreateKeyboardEvent(null, 53, true));
+
+  return 0;
+}
+
+// prettier-ignore
+(() => {
+ObjC.import('Cocoa'); // yes, it's necessary -- stop telling me it isn't
+
+ObjC.bindFunction('AXUIElementPerformAction', ['int', ['id', 'id']]);
+ObjC.bindFunction('AXUIElementCreateApplication', ['id', ['unsigned int']]);
+ObjC.bindFunction('AXUIElementCopyAttributeValue',['int', ['id', 'id', 'id*']]);
+})();
