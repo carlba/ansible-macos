@@ -56,3 +56,26 @@
       changed_when: false
       ansible.builtin.shell:
         cmd: defaults write NSGlobalDomain NSWindowResizeTime 0.001
+
+    - name: Ensure default user for git
+      git_config:
+        name: user.name
+        value: Carl Bäckström
+        scope: global
+
+    - name: Ensure default email for git
+      git_config:
+        name: user.email
+        value: genzorg@gmail.com
+        scope: global
+
+    - name: Ensure that global .gitignore is used
+      git_config:
+        name: core.excludesFile
+        value: "{{ ansible_env.HOME }}/.gitignore"
+        scope: global
+
+    - name: Ensure global .gitignore is present
+      ansible.builtin.template:
+        src: .gitignore.j2
+        dest: "{{ ansible_env.HOME }}/.gitignore"
