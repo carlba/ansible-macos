@@ -9,7 +9,6 @@
           - 1432731683 # Adblock Plus
           - 6445813049 # Spark Desktop
           - 905953485 # NordVPN
-          - 1568262835 # Super Agent
           - 585829637 # Todoist
     - name: Ensure Homebrew apps are present
       community.general.homebrew_cask:
@@ -34,3 +33,26 @@
         src: enable_sidecar.sh.j2
         dest: /usr/local/bin/enable_sidecar.sh
         mode: "0755"
+
+    # http://osxdaily.com/2010/03/02/minimize-windows-into-the-applications-dock-icon/
+    - name: Ensure MacOS minimizes applications to dock icon
+      osx_defaults:
+        domain: com.apple.dock
+        key: minimize-to-application
+        type: bool
+        value: true
+        state: present
+
+    # http://osxdaily.com/2010/03/02/minimize-windows-into-the-applications-dock-icon/
+    - name: Ensure MacOS minimizes applications to dock icon
+      osx_defaults:
+        domain: com.apple.dock
+        key: minimize-to-application
+        type: bool
+        value: true
+        state: present
+
+    - name: Ensure macOS minimizes windows faster
+      changed_when: false
+      ansible.builtin.shell:
+        cmd: defaults write NSGlobalDomain NSWindowResizeTime 0.001
