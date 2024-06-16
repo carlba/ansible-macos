@@ -1,0 +1,79 @@
+- name: Ensure Mac App Store apps are installed
+  community.general.mas:
+    id:
+      - 545519333 # Prime Video
+      - 1569813296 # 1Password for Safari
+      - 1432731683 # Adblock Plus
+      - 6445813049 # Spark Desktop
+      - 905953485 # NordVPN
+      - 585829637 # Todoist
+- name: Ensure Homebrew apps are present
+  community.general.homebrew_cask:
+    name:
+      - android-platform-tools
+      - discord
+      - obsidian
+      - 1password-cli
+      - hammerspoon
+      - nvidia-geforce-now
+      - google-drive
+    state: present
+    path: /opt/homebrew/bin/brew
+
+- name: Ensure karabiner.json is present
+  ansible.builtin.copy:
+    src: karabiner.json
+    dest: ~/.config/karabiner/karabiner.json
+    mode: '0644'
+
+- name: Ensure script to enable sidecar is present
+  ansible.builtin.template:
+    src: enable_sidecar.sh.j2
+    dest: /usr/local/bin/enable_sidecar.sh
+    mode: '0755'
+
+# http://osxdaily.com/2010/03/02/minimize-windows-into-the-applications-dock-icon/
+- name: Ensure MacOS minimizes applications to dock icon
+  osx_defaults:
+    domain: com.apple.dock
+    key: minimize-to-application
+    type: bool
+    value: true
+    state: present
+
+# http://osxdaily.com/2010/03/02/minimize-windows-into-the-applications-dock-icon/
+- name: Ensure MacOS minimizes applications to dock icon
+  osx_defaults:
+    domain: com.apple.dock
+    key: minimize-to-application
+    type: bool
+    value: true
+    state: present
+
+- name: Ensure macOS minimizes windows faster
+  changed_when: false
+  ansible.builtin.shell:
+    cmd: defaults write NSGlobalDomain NSWindowResizeTime 0.001
+
+- name: Ensure default user for git
+  git_config:
+    name: user.name
+    value: Carl Bäckström
+    scope: global
+
+- name: Ensure default email for git
+  git_config:
+    name: user.email
+    value: genzorg@gmail.com
+    scope: global
+
+- name: Ensure that global .gitignore is used
+  git_config:
+    name: core.excludesFile
+    value: '{{ ansible_env.HOME }}/.gitignore_global'
+    scope: global
+
+- name: Ensure global .gitignore is present
+  ansible.builtin.template:
+    src: .gitignore.j2
+    dest: '{{ ansible_env.HOME }}/.gitignore_global'
