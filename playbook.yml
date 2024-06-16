@@ -19,6 +19,7 @@
           - 1password-cli
           - hammerspoon
           - nvidia-geforce-now
+          - google-drive
         state: present
         path: /opt/homebrew/bin/brew
 
@@ -26,13 +27,13 @@
       ansible.builtin.copy:
         src: karabiner.json
         dest: ~/.config/karabiner/karabiner.json
-        mode: "0644"
+        mode: '0644'
 
     - name: Ensure script to enable sidecar is present
       ansible.builtin.template:
         src: enable_sidecar.sh.j2
         dest: /usr/local/bin/enable_sidecar.sh
-        mode: "0755"
+        mode: '0755'
 
     # http://osxdaily.com/2010/03/02/minimize-windows-into-the-applications-dock-icon/
     - name: Ensure MacOS minimizes applications to dock icon
@@ -72,10 +73,10 @@
     - name: Ensure that global .gitignore is used
       git_config:
         name: core.excludesFile
-        value: "{{ ansible_env.HOME }}/.gitignore"
+        value: '{{ ansible_env.HOME }}/.gitignore_global'
         scope: global
 
     - name: Ensure global .gitignore is present
       ansible.builtin.template:
         src: .gitignore.j2
-        dest: "{{ ansible_env.HOME }}/.gitignore"
+        dest: '{{ ansible_env.HOME }}/.gitignore_global'
