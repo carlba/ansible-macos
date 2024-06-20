@@ -90,3 +90,21 @@
     cmd: scutil --set HostName '{{ hostname }}'
   when: current_hostname.stdout != hostname
   become: true
+
+- name: Ensure set_default_browser script is present in /usr/local/bin
+  ansible.builtin.copy:
+    src: set_default_browser.sh
+    dest: /usr/local/bin/set_default_browser
+    mode: 'u=rwx,g=rx,o=rx'
+
+- name: Ensure set_default_browser script is present in ~
+  ansible.builtin.copy:
+    src: set_default_browser.sh
+    dest: /usr/local/bin/set_default_browser
+    mode: 'u=rwx,g=rx,o=rx'
+
+- name: Ensure aerospacer.js script is present in /usr/local/bin/aerospacer.js
+  ansible.builtin.copy:
+    src: aerospacer.js
+    dest: /usr/local/bin/aerospacer.js
+    mode: 'u=rwx,g=rx,o=rx'
