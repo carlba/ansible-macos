@@ -108,3 +108,8 @@
     src: aerospacer.js
     dest: /usr/local/bin/aerospacer.js
     mode: 'u=rwx,g=rx,o=rx'
+
+- name: Ensure Plex App Sync storage is moved to SD card
+  include_tasks: plex-storage-on-sdcard.yml
+  when: sdcard_path is defined
+  tags: plex

@@ -1,0 +1,22 @@
+---
+- name: Check if SD card path is a mount point
+  ansible.builtin.shell: df | grep '{{ sdcard_path }}$'
+  register: mountpoint_check
+  ignore_errors: true
+  tags: plex
+
+- name: Move Plex Media Server folder to SD card
+  ansible.builtin.shell: |
+    mv "{{ ansible_env.HOME }}/Library/Application Support/Plex/Plex Media Server/Sync" "{{ sdcard_path }}/plex_sync"
+  args:
+    creates: '{{ sdcard_path }}/plex_sync'
+  when: mountpoint_check.rc == 0
+  tags: plex
+
+- name: Create symbolic link to Plex Media Server folder
+  file:
+    src: '{{ sdcard_path }}/plex_sync'
+    dest: '{{ ansible_env.HOME }}/Library/Application Support/Plex/Plex Media Server/Sync'
+    state: link
+  when: mountpoint_check.rc == 0
+  tags: plex

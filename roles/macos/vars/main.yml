@@ -5,3 +5,4 @@ one_password_account_id: 'Z2GQ5QKE6NDH7LQEZPPQU722KI'
 ansible_become_password:
   "{{ lookup('community.general.onepassword', 'ansible-macos-vault',
   account_id=one_password_account_id) }}"
+sdcard_path: /Volumes/storage
